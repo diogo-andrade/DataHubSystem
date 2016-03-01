@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>fr.gael.dhus</groupId>
 		<artifactId>dhus-parent</artifactId>
-   	    <version>0.4.3-5-2</version>
+   	    <version>0.4.3-5</version>
    	    <relativePath></relativePath>
 	</parent>
 
