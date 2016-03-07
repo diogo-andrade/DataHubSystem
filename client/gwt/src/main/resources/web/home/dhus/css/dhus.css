@@ -149,14 +149,14 @@ body
 {
 	position: absolute;
 	top: -4px;
-	left: -18px;
+	left: 0px;
 }
 
 #right_logo
 {		
 	position: absolute;
-	top: -12px;
-	right: -25px;
+	top: 2px;
+	right: 0px;
 }
 
 #menu
