@@ -374,6 +374,10 @@
 		      <groupId>org.eclipse.jetty.orbit</groupId>
 		      <artifactId>javax.servlet</artifactId>
 		    </exclusion>
+             <exclusion>
+                 <groupId>com.google.protobuf</groupId>
+                 <artifactId>protobuf-java</artifactId>
+             </exclusion>
          </exclusions>
       </dependency>
       
@@ -550,6 +554,14 @@
                 		<outputDirectory>${project.build.outputDirectory}</outputDirectory>
                 		<destFileName>solr.war</destFileName>
                 	</artifactItem>
+                    <artifactItem>
+                        <groupId>petascope</groupId>
+                        <artifactId>petascope</artifactId>
+                        <version>2.9.1</version>
+                        <type>war</type>
+                        <outputDirectory>${project.build.outputDirectory}</outputDirectory>
+                        <destFileName>rasdaman.war</destFileName>
+                    </artifactItem>
                 </artifactItems>
             </configuration>
          </plugin>

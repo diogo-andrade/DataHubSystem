@@ -19,6 +19,7 @@
    <inceptionYear>2013</inceptionYear>
 
    <modules>
+      <module>petascope</module>
       <module>parent</module>
       <module>liquibase-logs</module>
       <module>solr</module>
