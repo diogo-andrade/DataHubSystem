@@ -24,11 +24,7 @@
                                 ref="preAuthFilter" />
         <security:custom-filter position="BASIC_AUTH_FILTER"
                                 ref="basicAuthFilter" />
-
-        <security:logout invalidate-session="true"
-                         success-handler-ref="logoutSuccessHandler" />
-
         <security:intercept-url pattern="/**"
-                                access="isAuthenticated()" />
+                                access="permitAll" />
     </security:http>
 </beans>

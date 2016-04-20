@@ -9,9 +9,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 @Component
-@WebApp (
-        name = "rasdaman"
-)
+@WebApp (name = "rasdaman")
 public class PetascopeWebapp extends WebApplication implements InitializingBean {
 
     @Override
@@ -31,12 +29,12 @@ public class PetascopeWebapp extends WebApplication implements InitializingBean 
 
     @Override
     public boolean hasWarStream() {
-        return false;
+        return true;
     }
 
     @Override
     public InputStream getWarStream() {
-        return SolrWebapp.class.getClassLoader ().getResourceAsStream ("rasdaman.war");
+        return PetascopeWebapp.class.getClassLoader ().getResourceAsStream ("rasdaman.war");
     }
 
     @Override
