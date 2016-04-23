@@ -32,6 +32,9 @@
          <useProjectArtifact>false</useProjectArtifact>
          <outputDirectory>lib</outputDirectory>
          <scope>runtime</scope>
+         <excludes>
+            <exclude>com.google.protobuf:protobuf-java</exclude>
+         </excludes>
       </dependencySet>
    </dependencySets>
 </assembly>
