@@ -265,6 +265,19 @@
 
           <div class="row-fluid">
             <div class="col-md-12 sectiontitle">
+              <div class="col-md-1 glyphicon glyphicon-chevron-up" ng-show="windows.ogcservices" ng-click="windows.ogcservices = !windows.ogcservices" title="Minimize"></div>
+              <div class="col-md-1 glyphicon glyphicon-chevron-down" ng-show="!windows.ogcservices" ng-click="windows.ogcservices = !windows.ogcservices" title="Maximize"></div>
+              <div class="col-md-11">
+              OGC Services
+              </div>              
+            </div>            
+            <div class="col-md-12">
+              <product-ogc-services ng-show="windows.ogcservices" product-uuid="{{product.id}}"></product-ogc-services>              
+            </div>
+          </div>
+
+          <div class="row-fluid">
+            <div class="col-md-12 sectiontitle">
               <div class="col-md-1 glyphicon glyphicon-chevron-up" ng-show="windows.inspector" ng-click="windows.inspector = !windows.inspector" title="Minimize"></div>
               <div class="col-md-1 glyphicon glyphicon-chevron-down" ng-show="!windows.inspector" ng-click="windows.inspector = !windows.inspector" title="Maximize"></div>
               <div class="col-md-11">

@@ -61,7 +61,8 @@ angular.module('DHuS-webclient')
               //scope.windows.oldmap=true;  //take old map show/hide status
               scope.windows.quicklook=true;
               scope.windows.attributes=true;
-              scope.windows.inspector=true;              
+              scope.windows.inspector=true;
+              scope.windows.ogcservices=true;              
 
               $('#productView').on('shown.bs.modal', function (e) {
                   scope.showquicklook = ApplicationService.settings.showquicklook;
