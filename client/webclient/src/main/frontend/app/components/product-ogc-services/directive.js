@@ -34,7 +34,39 @@ angular.module('DHuS-webclient')
           pre: function(scope, iElem, iAttrs){
           },
           post: function(scope, iElem, iAttrs){
+            scope.ola = "This is a test this a test this a test this a test this a test this a test this a test this a test this a test this a test" +
+                "this a test this a test this a test this a test this a test this a test this a test this a test";
 
+            scope.model=null;
+            scope.products = ProductDetailsModelService.products;
+            scope.uuid = null;
+            scope.product = null;
+            scope.link = null;
+            iAttrs.$observe('productUuid',
+                function(newValue){
+                  scope.uuid = newValue;
+                  scope.model = _.findWhere(scope.products.list, {uuid: scope.uuid});
+                  var product = _.findWhere(scope.model.indexes,{name:"product"});
+                    if(product) {
+                    var title = scope.model.identifier;
+                    var polarisation = _.findWhere(product.children, {name:"Polarisation"});
+                    polarisation = (polarisation) ? polarisation.value.split(" ") : 'empty'
+                    var productLevel = _.findWhere(product.children, {name:"Product level"});
+                    productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
+                    scope.polarisation  = polarisation;
+                    if(productLevel == "1") {
+                      scope.OGCServicesVisible = true;
+                      scope.level = productLevel;
+                      var results = [];
+                      for (var i = 0; i < polarisation.length; i++) {
+                        results.push(ApplicationConfig.baseUrl + 'rasdaman/ows?&SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID='+ title + '_' + polarisation[i] + '&FORMAT=image/png');
+                        scope.services = results;
+                      }
+                    } else {
+                      scope.OGCServicesVisible = false;
+                    }
+                  }
+                });
           }
         }
       }
