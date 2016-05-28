@@ -20,6 +20,7 @@
     <link href="assets/components/nvd3/build/nv.d3.min.css" rel="stylesheet">
 
     <link href="assets/css/custom.css" rel="stylesheet">
+    <link href="assets/css/dhus-style.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -30,17 +31,40 @@
 
 </head>
 <body>
-<div class="container" ng-controller="rasdaman.MainController">
+<div id="toolbar" class="navbar toolbar" role="navigation">
     <div class="row">
-        <div class="col-sm-12">
-            <uib-tabset justified="true">
-                <uib-tab ng-repeat="tab in Tabs" heading="{{tab.Heading}}" active="tab.Active"
-                         disable="tab.Disabled">
-                    <div ui-view="{{tab.View}}"></div>
-                </uib-tab>
-            </uib-tabset>
+        <!-- left element -->
+        <div class=" col-md-4">
+            <div class="row">
+                <!-- logos -->
+            </div>
+        </div>
+        <!-- center element TITLE -->
+        <div class=" col-md-4">
+            <div class="title-component">IP Sentinel - OGC Services</div>
+        </div>
+        <!-- right element -->
+        <div class=" col-md-4 ">
+            <div class="row rowbar">
+                <div class="row little">
+                </div>
+            </div>
         </div>
     </div>
+</div>
+<div id="page-container" class="container page-container" ng-controller="rasdaman.MainController" style="top: 57px;">
+            <style>.nav-tabs {
+                overflow-y: auto;
+                max-height: 42px;
+            }</style>
+            <div style="overflow: hidden">
+                <uib-tabset>
+                    <uib-tab ng-repeat="tab in Tabs" heading="{{tab.Heading}}" active="tab.Active"
+                             disable="tab.Disabled">
+                        <div ui-view="{{tab.View}}"></div>
+                    </uib-tab>
+                </uib-tabset>
+            </div>
 </div>
 </body>
 
