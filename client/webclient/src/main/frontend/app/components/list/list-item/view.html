@@ -207,16 +207,16 @@
 		    </div>
 	    </div>
 	    <!-- buttons -->
-		<div class="item-buttons" ng-show="visibleItemButton">			
-			
+		<div class="item-buttons" ng-show="visibleItemButton">
 			<!-- <input class=" item-checkbox " ng-model="product.selected"  type="checkbox"> </input> -->
 			<div class="glyphicon" ng-class="{ ' glyphicon-unchecked': !product.selected, 'glyphicon-check': product.selected, 'selected-item': product.selected }"  ng-click="selectProduct(); $event.stopPropagation();" title="Select product"></div>
 
-			
+
 			<div class="glyphicon glyphicon glyphicon-screenshot item-button" ng-click="zoomTo(product)" title="Zoom to product"></div>
 			<div class="glyphicon glyphicon-eye-open item-button" ng-click="showProductDetails()" title="View Product Details"></div>
+			<div class="glyphicon glyphicon-globe item-button" title="{{titleOGC}}" ng-class="{'selected-item': OGCServicesVisible}"></div>
 			<div class="glyphicon glyphicon-plus item-button" title="Add Product to Cart" ng-click="addProductToCart()" ng-show="!product.isincart" ng-if="showcart"></div>
-			<div class="glyphicon glyphicon-minus item-button" title="Remove Product from Cart" ng-click="removeProductFromCart()" ng-show="product.isincart" ng-if="showcart"></div>			
+			<div class="glyphicon glyphicon-minus item-button" title="Remove Product from Cart" ng-click="removeProductFromCart()" ng-show="product.isincart" ng-if="showcart"></div>
 			<div class="glyphicon glyphicon-download-alt item-button" ng-click="downloadProduct()" title="Download Product"></div>
 			<!-- delete product -->
 			<div ng-if="showDeleteButton" class="glyphicon glyphicon-remove item-button" ng-click="deleteProduct()" title="Delete Product"></div>

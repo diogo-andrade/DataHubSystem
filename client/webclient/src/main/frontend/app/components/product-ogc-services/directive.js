@@ -59,8 +59,11 @@ angular.module('DHuS-webclient')
                       scope.level = productLevel;
                       var results = [];
                       for (var i = 0; i < polarisation.length; i++) {
-                        results.push(ApplicationConfig.baseUrl + 'rasdaman/ows?&SERVICE=WCS&VERSION=2.0.1&REQUEST=GetCoverage&COVERAGEID='+ title + '_' + polarisation[i] + '&FORMAT=image/png');
-                        scope.services = results;
+                        var url = ApplicationConfig.baseUrl + 'rasdaman/static/wcs-client/index.html#/';
+                        var filename = title + '_' + polarisation[i];
+                        var coverage = {id: filename, wcs: url + 'describe-coverage/' + filename, wms: url + 'get-map/' + filename};
+                        results.push(coverage);
+                        scope.coverages = results;
                       }
                     } else {
                       scope.OGCServicesVisible = false;

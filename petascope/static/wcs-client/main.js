@@ -4558,7 +4558,8 @@ var rasdaman;
 (function (rasdaman) {
     var SettingsService = (function () {
         function SettingsService($window) {
-            this.WCSEndpoint = $window.location.origin + "/rasdaman/ows";
+            //this.WCSEndpoint = $window.location.origin + "/rasdaman/ows";
+            this.WCSEndpoint = "http://ows.rasdaman.org/rasdaman/ows";
             this.WCSServiceNameVersion = "SERVICE=WCS&VERSION=2.0.1";
         }
 
@@ -4838,94 +4839,196 @@ var rasdaman;
 var rasdaman;
 (function (rasdaman) {
     var MainController = (function () {
-        function MainController($scope, $rootScope, $state) {
-            var _this = this;
+        function MainController($route, $scope, $rootScope, $log, wcsService, settings, alertService, errorHandlingService) {
+            $scope.$route = $route;
             this.$scope = $scope;
-            this.initializeTabs($scope);
-            $scope.$watch("StateInformation.ServerCapabilities", function (newValue, oldValue) {
-                if (newValue) {
-                    $scope.DescribeCoverageTab.Disabled = false;
-                    $scope.GetCoverageTab.Disabled = true;
-                    $scope.ProcessCoverageTab.Disabled = !MainController.isProcessCoverageEnabled(newValue);
-                    $scope.InsertCoverageTab.Disabled = !MainController.isCoverageTransactionEnabled(newValue);
-                    $scope.DeleteCoverageTab.Disabled = !MainController.isCoverageTransactionEnabled(newValue);
-                }
-                else {
-                    _this.resetState();
-                }
-            });
-            $scope.$watch("StateInformation.SelectedCoverageDescriptions", function (newValue, oldValue) {
-                $scope.GetCoverageTab.Disabled = newValue ? false : true;
-            });
-            $scope.Tabs = [$scope.GetCapabilitiesTab, $scope.DescribeCoverageTab, $scope.GetCoverageTab, $scope.ProcessCoverageTab, $scope.DeleteCoverageTab, $scope.InsertCoverageTab];
+
             $scope.StateInformation = {
                 ServerCapabilities: null,
                 SelectedCoverageDescriptions: null
             };
-            $scope.describeCoverage = function (coverageId) {
-                $scope.DescribeCoverageTab.Active = true;
-                $rootScope.$broadcast("SelectedCoverageId", coverageId);
+
+            /*
+             * GetCapabilities is performed automatically in the MainController on the first page loading
+             */
+            this.$log = $log;
+            this.wcsService = wcsService;
+            this.settings = settings;
+            this.alertService = alertService;
+            this.errorHandlingService = errorHandlingService;
+            $scope.IsAvailableCoveragesOpen = false;
+            $scope.IsServiceIdentificationOpen = false;
+            $scope.IsServiceProviderOpen = false;
+            $scope.IsCapabilitiesDocumentOpen = false;
+            $rootScope.WcsServerEndpoint = settings.WCSEndpoint;
+            $scope.getServerCapabilities = function () {
+                if (!$rootScope.WcsServerEndpoint) {
+                    alertService.error("The entered WCS endpoint is invalid.");
+                    return;
+                }
+                /*
+                 * Reset GetCoverage tab
+                 */
+                $scope.isInactive = function() { return true;}
+                $scope.StateInformation.ServerCapabilities = null;
+
+                settings.WCSEndpoint = $rootScope.WcsServerEndpoint;
+                var capabilitiesRequest = new wcs.GetCapabilities();
+                wcsService.getServerCapabilities(capabilitiesRequest)
+                    .then(function (response) {
+                        $scope.CapabilitiesDocument = response.Document;
+                        $scope.Capabilities = response.Value;
+                        $scope.IsAvailableCoveragesOpen = true;
+                        $scope.IsServiceIdentificationOpen = true;
+                        $scope.IsServiceProviderOpen = true;
+                    }, function () {
+                        var args = [];
+                        for (var _i = 0; _i < arguments.length; _i++) {
+                            args[_i - 0] = arguments[_i];
+                        }
+                        $scope.CapabilitiesDocument = null;
+                        $scope.Capabilities = null;
+                        $scope.IsAvailableCoveragesOpen = false;
+                        $scope.IsServiceIdentificationOpen = false;
+                        $scope.IsServiceProviderOpen = false;
+                        errorHandlingService.handleError(args);
+                        $log.error(args);
+                    })
+                    .finally(function () {
+                        $scope.StateInformation.ServerCapabilities = $scope.Capabilities;
+                        $rootScope.$broadcast("StateInformation.CapabilitiesReady");
+                    });
             };
+
+            $scope.$watch("StateInformation.SelectedCoverageDescriptions", function (newValue, oldValue) {
+                $scope.isInactive = function() {
+                    if (newValue != oldValue) {
+                        return false;
+                    } else {
+                        return true;
+                    }
+                }
+            });
+
+           // $rootScope.IsCoverageDescriptionsDocumentOpen = false;
+
+            $scope.getServerCapabilities();
         }
 
-        MainController.prototype.initializeTabs = function ($scope) {
-            $scope.GetCapabilitiesTab = {
-                Heading: "GetCapabilities",
-                View: "get_capabilities",
-                Active: true,
-                Disabled: false
-            };
-            $scope.DescribeCoverageTab = {
-                Heading: "DescribeCoverage",
-                View: "describe_coverage",
-                Active: false,
-                Disabled: false
-            };
-            $scope.GetCoverageTab = {
-                Heading: "GetCoverage",
-                View: "get_coverage",
-                Active: false,
-                Disabled: false
-            };
-            $scope.ProcessCoverageTab = {
-                Heading: "ProcessCoverages",
-                View: "process_coverages",
-                Active: false,
-                Disabled: false
-            };
-            $scope.InsertCoverageTab = {
-                Heading: "InsertCoverage",
-                View: "insert_coverage",
-                Active: false,
-                Disabled: false
-            };
-            $scope.DeleteCoverageTab = {
-                Heading: "DeleteCoverage",
-                View: "delete_coverage",
-                Active: false,
-                Disabled: false
-            };
-        };
-        MainController.prototype.resetState = function () {
-            this.$scope.DescribeCoverageTab.Disabled = true;
-            this.$scope.GetCoverageTab.Disabled = true;
-            this.$scope.ProcessCoverageTab.Disabled = true;
-            this.$scope.DeleteCoverageTab.Disabled = true;
-            this.$scope.InsertCoverageTab.Disabled = true;
-        };
         MainController.isProcessCoverageEnabled = function (serverCapabilities) {
             var processExtensionUri = rasdaman.Constants.PROCESSING_EXT_URI;
             return serverCapabilities.ServiceIdentification.Profile.indexOf(processExtensionUri) != -1;
         };
+
         MainController.isCoverageTransactionEnabled = function (serverCapabilities) {
             var transactionExtensionUri = rasdaman.Constants.TRANSACTION_EXT_URI;
             return serverCapabilities.ServiceIdentification.Profile.indexOf(transactionExtensionUri) != -1;
         };
-        MainController.$inject = ["$scope", "$rootScope", "$state"];
+
+        MainController.$inject = [
+            "$route",
+            "$scope",
+            "$rootScope",
+            "$log",
+            "rasdaman.WCSService",
+            "rasdaman.SettingsService",
+            "Notification",
+            "rasdaman.WCSErrorHandlingService"];
         return MainController;
     })();
     rasdaman.MainController = MainController;
 })(rasdaman || (rasdaman = {}));
+
+/*
+ *  Extension by Diogo Andrade @ 2016
+ */
+
+var rasdaman;
+(function (rasdaman) {
+    var GetMapController = (function () {
+        function GetMapController($window, $scope, $log, $rootScope, $routeParams, $location, wcsService, settings, alertService) {
+
+            function isCoverageIdValid(coverageId) {
+                if ($scope.StateInformation.ServerCapabilities) {
+                    var coverageSummaries = $scope.StateInformation.ServerCapabilities.Contents.CoverageSummary;
+                    for (var i = 0; i < coverageSummaries.length; ++i) {
+                        if (coverageSummaries[i].CoverageId == coverageId) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+
+            $scope.$on("$routeChangeSuccess", function (next, current) {
+                if ($scope.StateInformation.ServerCapabilities && $routeParams.coverageid) {
+                    if (isCoverageIdValid($routeParams.coverageid)) {
+                        $window.location.reload();
+                    } else {
+                        alertService.error("The entered coverage ID is invalid.")
+                        $location.path( "/get-capabilities" );
+                    }
+                } else if ($scope.StateInformation.ServerCapabilities && $scope.StateInformation.SelectedCoverageDescriptions){
+                    $scope.CoverageDescription = $scope.StateInformation.SelectedCoverageDescriptions.CoverageDescription[0];
+                    getMap($scope.CoverageDescription.CoverageId);
+                } else if (!$routeParams.coverageid){
+                    $location.path( "/get-capabilities" );
+                }
+            });
+
+
+            //Litle trick to wait for the getCapabilities response - When coverage is selected through the url
+            $scope.$on("StateInformation.CapabilitiesReady", function (event, args) {
+                if($routeParams.coverageid) {
+                    if (isCoverageIdValid($routeParams.coverageid)) {
+                        getMap($routeParams.coverageid);
+                    } else {
+                        alertService.error("The entered coverage ID is invalid.");
+                        $location.path( "/get-capabilities" );
+                    }
+                }
+            });
+
+            var getMap = function (coverageId) {
+                console.log(coverageId);
+                var lon = 0;
+                var lat = 0;
+                var zoom = 3;
+                var map, backgroundWms, overlayWms;
+
+                map = new OpenLayers.Map( 'map' );
+                map.addControl(new OpenLayers.Control.MousePosition());
+
+                backgroundWms = new OpenLayers.Layer.WMS( "World WMS",
+                    "http://vmap0.tiles.osgeo.org/wms/vmap0", {layers: 'basic'} );
+                map.addLayer(backgroundWms);
+                overlayWms = new OpenLayers.Layer.WMS( coverageId,
+                    settings.WCSEndpoint + "/wms13", {layers: coverageId, transparent: 'true', version: '1.3.0'} );
+                map.addLayer(overlayWms);
+
+
+                map.setBaseLayer(backgroundWms);
+                map.setCenter(new OpenLayers.LonLat(lon, lat), zoom);
+                map.addControl( new OpenLayers.Control.LayerSwitcher() );
+            }
+        }
+        GetMapController.$inject = [
+            "$window",
+            "$scope",
+            "$log",
+            "$rootScope",
+            "$routeParams",
+            "$location",
+            "rasdaman.WCSService",
+            "rasdaman.SettingsService",
+            "Notification"
+        ];
+        return GetMapController;
+    })();
+    rasdaman.GetMapController = GetMapController;
+})(rasdaman || (rasdaman = {}));
+
 /*
  * This file is part of rasdaman community.
  *
@@ -4956,55 +5059,68 @@ var rasdaman;
 var rasdaman;
 (function (rasdaman) {
     var GetCapabilitiesController = (function () {
-        function GetCapabilitiesController($scope, $log, wcsService, settings, alertService, errorHandlingService) {
-            this.$scope = $scope;
-            this.$log = $log;
-            this.wcsService = wcsService;
-            this.settings = settings;
-            this.alertService = alertService;
-            this.errorHandlingService = errorHandlingService;
-            $scope.IsAvailableCoveragesOpen = false;
-            $scope.IsServiceIdentificationOpen = false;
-            $scope.IsServiceProviderOpen = false;
-            $scope.IsCapabilitiesDocumentOpen = false;
-            $scope.WcsServerEndpoint = settings.WCSEndpoint;
-            $scope.getServerCapabilities = function () {
-                if (!$scope.WcsServerEndpoint) {
-                    alertService.error("The entered WCS endpoint is invalid.");
-                    return;
-                }
-                settings.WCSEndpoint = $scope.WcsServerEndpoint;
-                var capabilitiesRequest = new wcs.GetCapabilities();
-                wcsService.getServerCapabilities(capabilitiesRequest)
-                    .then(function (response) {
-                        $scope.CapabilitiesDocument = response.Document;
-                        $scope.Capabilities = response.Value;
-                        $scope.IsAvailableCoveragesOpen = true;
-                        $scope.IsServiceIdentificationOpen = true;
-                        $scope.IsServiceProviderOpen = true;
-                    }, function () {
-                        var args = [];
-                        for (var _i = 0; _i < arguments.length; _i++) {
-                            args[_i - 0] = arguments[_i];
-                        }
-                        $scope.CapabilitiesDocument = null;
-                        $scope.Capabilities = null;
-                        $scope.IsAvailableCoveragesOpen = false;
-                        $scope.IsServiceIdentificationOpen = false;
-                        $scope.IsServiceProviderOpen = false;
-                        errorHandlingService.handleError(args);
-                        $log.error(args);
-                    })
-                    .finally(function () {
-                        $scope.StateInformation.ServerCapabilities = $scope.Capabilities;
-                    });
-            };
-            $scope.getServerCapabilities();
-        }
+        function GetCapabilitiesController($scope, $log, $rootScope, wcsService, settings, alertService, errorHandlingService) {
+            /*
+             * GetCapabilities is now performed on MainController
+             *
+             */
 
+            $scope.$watch("WcsServerEndpoint", function (newValue, oldValue) {
+                    if (newValue != oldValue) {
+                        $rootScope.WcsServerEndpoint = $scope.WcsServerEndpoint;
+                    }
+            });
+
+            /*
+             this.$scope = $scope;
+             this.$log = $log;
+             this.wcsService = wcsService;
+             this.settings = settings;
+             this.alertService = alertService;
+             this.errorHandlingService = errorHandlingService;
+             $scope.IsAvailableCoveragesOpen = false;
+             $scope.IsServiceIdentificationOpen = false;
+             $scope.IsServiceProviderOpen = false;
+             $scope.IsCapabilitiesDocumentOpen = false;
+             $scope.WcsServerEndpoint = settings.WCSEndpoint;
+             $scope.getServerCapabilities = function () {
+             if (!$scope.WcsServerEndpoint) {
+             alertService.error("The entered WCS endpoint is invalid.");
+             return;
+             }
+             settings.WCSEndpoint = $scope.WcsServerEndpoint;
+             var capabilitiesRequest = new wcs.GetCapabilities();
+             wcsService.getServerCapabilities(capabilitiesRequest)
+             .then(function (response) {
+             $scope.CapabilitiesDocument = response.Document;
+             $scope.Capabilities = response.Value;
+             $scope.IsAvailableCoveragesOpen = true;
+             $scope.IsServiceIdentificationOpen = true;
+             $scope.IsServiceProviderOpen = true;
+             }, function () {
+             var args = [];
+             for (var _i = 0; _i < arguments.length; _i++) {
+             args[_i - 0] = arguments[_i];
+             }
+             $scope.CapabilitiesDocument = null;
+             $scope.Capabilities = null;
+             $scope.IsAvailableCoveragesOpen = false;
+             $scope.IsServiceIdentificationOpen = false;
+             $scope.IsServiceProviderOpen = false;
+             errorHandlingService.handleError(args);
+             $log.error(args);
+             })
+             .finally(function () {
+             $scope.StateInformation.ServerCapabilities = $scope.Capabilities;
+             });
+             };
+             $scope.getServerCapabilities();
+             */
+        }
         GetCapabilitiesController.$inject = [
             "$scope",
             "$log",
+            "$rootScope",
             "rasdaman.WCSService",
             "rasdaman.SettingsService",
             "Notification",
@@ -5043,9 +5159,10 @@ var rasdaman;
 var rasdaman;
 (function (rasdaman) {
     var DescribeCoverageController = (function () {
-        function DescribeCoverageController($scope, $rootScope, $log, wcsService, alertService, wcsErrorHandlingService) {
+        function DescribeCoverageController($scope, $rootScope, $log, $routeParams, wcsService, alertService, wcsErrorHandlingService) {
             $scope.SelectedCoverageId = null;
-            $scope.IsCoverageDescriptionsDocumentOpen = false;
+            $scope.IsCoverageDescriptionsDocumentOpen = true;
+
             $scope.isCoverageIdValid = function () {
                 if ($scope.StateInformation.ServerCapabilities) {
                     var coverageSummaries = $scope.StateInformation.ServerCapabilities.Contents.CoverageSummary;
@@ -5057,18 +5174,50 @@ var rasdaman;
                 }
                 return false;
             };
-            $rootScope.$on("SelectedCoverageId", function (event, coverageId) {
-                $scope.SelectedCoverageId = coverageId;
-                $scope.describeCoverage();
+
+
+            $scope.$on("$routeChangeSuccess", function (next, current) {
+                if($scope.StateInformation.ServerCapabilities && $routeParams.coverageid) {
+                    $scope.SelectedCoverageId = $routeParams.coverageid;
+                    $scope.describeCoverage();
+                } else {
+                    //Retrieve the coverage information without performing a new HTTP GET
+                    if($scope.StateInformation.SelectedCoverageDescriptions) {
+                        $scope.CoverageDescription = $scope.StateInformation.SelectedCoverageDescriptions.CoverageDescription[0];
+                        $scope.SelectedCoverageId = $scope.CoverageDescription.CoverageId;
+                        $scope.CoverageDescriptionsDocument = $rootScope.CoverageDescriptionsDocument;
+                        //$rootScope.IsCoverageDescriptionsDocumentOpen = $scope.IsCoverageDescriptionsDocumentOpen;
+                    }
+                }
             });
+
+            //Litle trick to wait for the getCapabilities response
+            $scope.$on("StateInformation.CapabilitiesReady", function (event, args) {
+                if($routeParams.coverageid) {
+                    $scope.SelectedCoverageId = $routeParams.coverageid;
+                    $scope.describeCoverage();
+                }
+            });
+
+
             $scope.$watch("StateInformation.ServerCapabilities", function (capabilities) {
                 if (capabilities) {
                     $scope.AvailableCoverageIds = [];
                     capabilities.Contents.CoverageSummary.forEach(function (coverageSummary) {
                         $scope.AvailableCoverageIds.push(coverageSummary.CoverageId);
                     });
+                } else {
+                    /*
+                     * Reset DescribeCoverage Tab
+                     */
+                    $scope.CoverageDescriptions = null;
+                    $scope.CoverageDescription = null;
+                    $scope.SelectedCoverageId = null;
+                    $scope.CoverageDescriptionsDocument = null;
                 }
             });
+
+
             $scope.describeCoverage = function () {
                 if (!$scope.isCoverageIdValid()) {
                     alertService.error("The entered coverage ID is invalid.");
@@ -5079,15 +5228,15 @@ var rasdaman;
                 var describeCoverageRequest = new wcs.DescribeCoverage(coverageIds);
                 wcsService.getCoverageDescription(describeCoverageRequest)
                     .then(function (response) {
-                        $scope.CoverageDescriptionsDocument = response.Document;
-                        $scope.CoverageDescriptions = response.Value;
+                        $rootScope.CoverageDescriptionsDocument = response.Document;
+                        $rootScope.CoverageDescriptions = response.Value;
                     }, function () {
                         var args = [];
                         for (var _i = 0; _i < arguments.length; _i++) {
                             args[_i - 0] = arguments[_i];
                         }
-                        $scope.CoverageDescriptionsDocument = null;
-                        $scope.CoverageDescriptions = null;
+                        $rootScope.CoverageDescriptionsDocument = null;
+                        $rootScope.CoverageDescriptions = null;
                         wcsErrorHandlingService.handleError(args);
                         $log.error(args);
                     })
@@ -5095,13 +5244,14 @@ var rasdaman;
                         $scope.StateInformation.SelectedCoverageDescriptions = $scope.CoverageDescriptions;
                     });
             };
-            $scope.IsCoverageDescriptionsDocumentOpen = false;
+            $scope.IsCoverageDescriptionsDocumentOpen = true;
         }
 
         DescribeCoverageController.$inject = [
             "$scope",
             "$rootScope",
             "$log",
+            "$routeParams",
             "rasdaman.WCSService",
             "Notification",
             "rasdaman.WCSErrorHandlingService"
@@ -5317,7 +5467,7 @@ var rasdaman;
 var rasdaman;
 (function (rasdaman) {
     var GetCoverageController = (function () {
-        function GetCoverageController($scope, $log, wcsService, alertService) {
+        function GetCoverageController($scope, $log, $location, wcsService, alertService) {
             $scope.$watch("StateInformation.SelectedCoverageDescriptions", function (coverageDescriptions) {
                 if (coverageDescriptions && coverageDescriptions.CoverageDescription) {
                     $scope.CoverageDescription = $scope.StateInformation.SelectedCoverageDescriptions.CoverageDescription[0];
@@ -5390,6 +5540,12 @@ var rasdaman;
                     };
                 }
             });
+
+            $scope.$on("$routeChangeSuccess", function (next, current) {
+                    if (!$scope.StateInformation.SelectedCoverageDescriptions){
+                        $location.path( "/get-capabilities" );
+                    }
+            });
         }
 
         GetCoverageController.isRangeSubsettingSupported = function (serverCapabilities) {
@@ -5404,6 +5560,7 @@ var rasdaman;
         GetCoverageController.$inject = [
             "$scope",
             "$log",
+            "$location",
             "rasdaman.WCSService",
             "Notification"
         ];
@@ -5784,6 +5941,7 @@ var rasdaman;
             });
             $scope.executeQuery = function () {
                 try {
+                    console.log($scope.Query);
                     var command = new rasdaman.WCPSCommand($scope.Query);
                     var processCoverages = new wcs.ProcessCoverages(command.Query, []);
                     var waitingForResults = new WaitingForResult();
@@ -5839,6 +5997,10 @@ var rasdaman;
                 {
                     Title: 'Encode as PNG',
                     Query: 'for c in (mean_summer_airtemp) return encode(c, "png")'
+                },
+                {
+                    Title: 'Timeseries Example',
+                    Query: 'diagram>>for t1 in ( NN3_1 ) return encode( t1[t(0:49)], "csv" )'
                 }
             ];
         };
@@ -6296,40 +6458,41 @@ var rasdaman;
 (function (rasdaman) {
     "use strict";
     var AngularConfig = (function () {
-        function AngularConfig($httpProvider, $urlRouterProvider, $stateProvider, NotificationProvider) {
+        function AngularConfig($routeProvider, $httpProvider, NotificationProvider) {
             $httpProvider.defaults.useXDomain = true;
-            $stateProvider.state('wcs', {
-                url: "/wcs",
-                views: {
-                    'get_capabilities': {
-                        url: "get_capabilities",
-                        templateUrl: 'src/components/get_capabilities/GetCapabilitiesView.html',
-                        controller: rasdaman.GetCapabilitiesController
-                    },
-                    'describe_coverage': {
-                        url: "describe_coverage",
-                        templateUrl: 'src/components/describe_coverage/DescribeCoverageView.html',
-                        controller: rasdaman.DescribeCoverageController
-                    },
-                    'get_coverage': {
-                        templateUrl: 'src/components/get_coverage/GetCoverageView.html',
-                        controller: rasdaman.GetCoverageController
-                    },
-                    'process_coverages': {
-                        templateUrl: 'src/components/process_coverage/ProcessCoverageView.html',
-                        controller: rasdaman.ProcessCoverageController
-                    },
-                    'insert_coverage': {
-                        templateUrl: 'src/components/insert_coverage/InsertCoverageView.html',
-                        controller: rasdaman.InsertCoverageController
-                    },
-                    'delete_coverage': {
-                        templateUrl: 'src/components/delete_coverage/DeleteCoverageView.html',
-                        controller: rasdaman.DeleteCoverageController
-                    }
-                }
+            $routeProvider.when('/get-capabilities', {
+                templateUrl: 'src/components/get_capabilities/GetCapabilitiesView.html',
+                controller: rasdaman.GetCapabilitiesController,
+                menu: 'GetCapabilities'
+            }).when('/describe-coverage/:coverageid?', {
+                templateUrl: 'src/components/describe_coverage/DescribeCoverageView.html',
+                controller: rasdaman.DescribeCoverageController,
+                menu: 'DescribeCoverage'
+            }).when('/get-coverage', {
+                templateUrl: 'src/components/get_coverage/GetCoverageView.html',
+                controller: rasdaman.GetCoverageController,
+                menu: 'GetCoverage'
+            }).when('/process-coverages', {
+                templateUrl: 'src/components/process_coverage/ProcessCoverageView.html',
+                controller: rasdaman.ProcessCoverageController,
+                menu: 'ProcessCoverages'
+            }).when('/delete-coverage', {
+                templateUrl: 'src/components/delete_coverage/DeleteCoverageView.html',
+                controller: rasdaman.DeleteCoverageController,
+                menu: 'DeleteCoverage'
+            }).when('/insert-coverage', {
+                templateUrl: 'src/components/insert_coverage/InsertCoverageView.html',
+                controller: rasdaman.InsertCoverageController,
+                menu: 'InsertCoverage'
+            }).when('/get-map/:coverageid?', {
+                templateUrl: 'src/components/get_map/GetMapView.html',
+                controller: rasdaman.GetMapController,
+                menu: 'GetMap'
+            }).otherwise({
+                templateUrl: 'src/components/get_capabilities/GetCapabilitiesView.html',
+                controller: rasdaman.GetCapabilitiesController,
+                menu: 'GetCapabilities'
             });
-            $urlRouterProvider.otherwise('/wcs');
             NotificationProvider.setOptions({
                 delay: 10000,
                 startTop: 20,
@@ -6342,9 +6505,8 @@ var rasdaman;
         }
 
         AngularConfig.$inject = [
+            "$routeProvider",
             "$httpProvider",
-            "$urlRouterProvider",
-            "$stateProvider",
             "NotificationProvider"
         ];
         return AngularConfig;
@@ -6356,7 +6518,7 @@ var rasdaman;
             "ngSanitize",
             "ui.bootstrap",
             "smart-table",
-            "ui.router",
+            //"ui.router",
             "ui-notification",
             "ui.codemirror",
             "luegg.directives",
@@ -6367,6 +6529,7 @@ var rasdaman;
         .service("rasdaman.WCSService", rasdaman.WCSService)
         .service("rasdaman.WCSErrorHandlingService", rasdaman.WCSErrorHandlingService)
         .controller("rasdaman.SettingsController", rasdaman.SettingsController)
+        .controller("rasdaman.GetMapController", rasdaman.GetMapController)
         .controller("rasdaman.GetCapabilitiesController", rasdaman.GetCapabilitiesController)
         .controller("rasdaman.DescribeCoverageController", rasdaman.DescribeCoverageController)
         .controller("rasdaman.DeleteCoverageController", rasdaman.DeleteCoverageController)
@@ -6380,4 +6543,3 @@ var rasdaman;
         .directive("stringToNumberConverter", rasdaman.common.StringToNumberConverter)
         .directive("autocomplete", rasdaman.common.Autocomplete);
 })(rasdaman || (rasdaman = {}));
-//# sourceMappingURL=main.js.map

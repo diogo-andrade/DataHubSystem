@@ -1,6 +1,67 @@
 <div>
-    <div ng-repeat="result in services" ng-show="OGCServicesVisible">
-        <p style="overflow:hidden;"><a href="{{result}}">{{result}}</a></p>
+    <style>
+        .ogc-button {
+            background-color: #373B50 !important;
+            vertical-align: middle;
+            margin-left: 15px;
+            padding: 6px;
+            line-height: 20px;
+            position: relative;
+            display: block;
+            color: #fff;
+            fill: currentColor;
+            cursor: pointer;
+            text-decoration: none;
+            overflow: hidden;
+            transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            transition-delay: 0.2s;
+            box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+            font-weight: 900;
+            font-size: 12px;
+            text-align: center;
+            text-decoration: none;
+        }
+
+        @media screen and (max-width: 480px) {
+            #productView .ogc-button {
+                background-color: #373B50 !important;
+                vertical-align: middle;
+                margin-left: 15px;
+                padding: 6px;
+                line-height: 20px;
+                font-size: 12px;
+                position: relative;
+                display: block;
+                color: #fff;
+                fill: currentColor;
+                cursor: pointer;
+                text-decoration: none;
+                overflow: hidden;
+                transition: box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+                transition-delay: 0.2s;
+                box-shadow: 0 2px 5px 0 rgba(0, 0, 0, 0.26);
+                font-weight: 900;
+                text-align: center;
+            }
+        }
+        td > a:hover {
+            color: #fff;
+            text-decoration: none;
+        }
+    </style>
+    <div ng-repeat="coverage in coverages" ng-show="OGCServicesVisible">
+        <table style="width:100%; table-layout:fixed">
+            <tbody>
+                <tr>
+                    <td style="width: 75%;"><div>
+                        <p style="margin: 0; overflow-x: scroll; overflow-y: hidden; text-decoration:none;" title="{{coverage.id}}">{{coverage.id}}</p>
+                    </div></td>
+                    <td><a class="ogc-button" href="{{coverage.wcs}}" target="_blank">WCS</a></td>
+                    <td><a class="ogc-button" href="{{coverage.wms}}" target="_blank">WMS</a></td>
+                </tr>
+            </tbody>
+        </table>
+        <p style="overflow:hidden;"></p>
     </div>
     <div ng-show="!OGCServicesVisible">
         <p>There is no OGC service available for this product.</p>

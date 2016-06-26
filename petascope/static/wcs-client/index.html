@@ -7,7 +7,7 @@
     <meta name="description" content="The rasdaman WCS client">
     <meta name="author" content="rasdaman GmbH">
 
-    <title>WCS Client</title>
+    <title>IP Sentinel</title>
 
     <!-- Bootstrap Core CSS -->
     <link href="assets/components/bootstrap/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -21,6 +21,7 @@
 
     <link href="assets/css/custom.css" rel="stylesheet">
     <link href="assets/css/dhus-style.css" rel="stylesheet">
+    <link href="assets/css/map.css" rel="stylesheet">
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -53,18 +54,28 @@
     </div>
 </div>
 <div id="page-container" class="container page-container" ng-controller="rasdaman.MainController" style="top: 57px;">
-            <style>.nav-tabs {
-                overflow-y: auto;
-                max-height: 42px;
-            }</style>
-            <div style="overflow: hidden">
-                <uib-tabset>
-                    <uib-tab ng-repeat="tab in Tabs" heading="{{tab.Heading}}" active="tab.Active"
-                             disable="tab.Disabled">
-                        <div ui-view="{{tab.View}}"></div>
-                    </uib-tab>
-                </uib-tabset>
-            </div>
+    <style>.nav-tabs {
+        overflow-y: auto;
+        max-height: 42px;
+    }</style>
+    <div style="margin-bottom:70px;">
+        <ul class="nav nav-tabs">
+            <li ng-class="{active: $route.current.menu == 'GetCapabilities'}"><a class="item" href="#/get-capabilities">GetCapabilities</a></li>
+            <li ng-class="{active: $route.current.menu == 'DescribeCoverage'}"><a class="item" href="#/describe-coverage" >DescribeCoverage</a></li>
+            <li ng-class="{disabled: isInactive(), active: $route.current.menu == 'GetCoverage' }"><a ng-href="{{isInactive()? '' : '#/get-coverage'}}" ng-disabled="isInactive" class="item">GetCoverage</a></li>
+            <li ng-class="{disabled: isInactive() && $route.current.menu != 'GetMap', active: $route.current.menu == 'GetMap'}"><a ng-href="{{isInactive()? '' : '#/get-map'}}" ng-disabled="isInactive" class="item">GetMap</a></li>
+            <li ng-class="{active: $route.current.menu == 'ProcessCoverages'}"><a class="item" href="#/process-coverages">ProcessCoverages</a></li>
+          <!--  <li ng-class="{active: $route.current.menu == 'DeleteCoverage'}"><a class="item" href="#/delete-coverage" >DeleteCoverage</a></li>
+            <li ng-class="{active: $route.current.menu == 'InsertCoverage'}"><a class="item" href="#/insert-coverage">InsertCoverage</a></li>-->
+        </ul>
+        <!--<uib-tabset>
+            <uib-tab ng-repeat="tab in Tabs" heading="{{tab.Heading}}" active="tab.Active"
+                     disable="tab.Disabled">
+                <div ui-view="{{tab.View}}"></div>
+            </uib-tab>
+        </uib-tabset>-->
+        <div ng-view></div>
+    </div>
 </div>
 </body>
 
@@ -86,10 +97,12 @@
 <script src="assets/components/angular-animate/angular-animate.min.js"></script>
 <script src="assets/components/angular-bootstrap/ui-bootstrap-tpls.min.js"></script>
 <script src="assets/components/angular-smart-table/dist/smart-table.min.js"></script>
-<script src="assets/components/angular-ui-router/release/angular-ui-router.min.js"></script>
+<!--<script src="assets/components/angular-ui-router/release/angular-ui-router.min.js"></script>-->
 <script src="assets/components/angular-ui-notification/dist/angular-ui-notification.min.js"></script>
 <script src="assets/components/angular-scroll-glue/src/scrollglue.js"></script>
 <script src="assets/components/angular-nvd3/dist/angular-nvd3.min.js"></script>
+<!-- OpenLayers -->
+<script src="assets/components/openlayers/OpenLayers.js"></script>
 
 <script src="assets/components/angular-ui-codemirror/ui-codemirror.min.js"></script>
 <script src="main.js"></script>

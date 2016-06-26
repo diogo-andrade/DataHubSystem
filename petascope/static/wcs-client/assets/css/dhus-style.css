@@ -77,10 +77,14 @@ body {
     position: relative;
 }
 
-
-a, a:hover {
+a {
     color: black !important;
     text-decoration: none;
+}
+
+a:hover {
+    color: black !important;
+    cursor: pointer;
 }
 
 .nav > li.disabled > a {

@@ -38,7 +38,7 @@
                         </thead>
                         <tbody>
                         <tr ng-repeat="coverageSummary in coverageSummaries">
-                            <td><a ng-click='describeCoverage(coverageSummary.CoverageId);'>{{coverageSummary.CoverageId}}</a>
+                            <td><a ng-href="#/describe-coverage/{{coverageSummary.CoverageId}}">{{coverageSummary.CoverageId}}</a>
                             </td>
                             <td>{{coverageSummary.CoverageSubtype}}</td>
                         </tr>
