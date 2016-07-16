@@ -115,7 +115,7 @@ public class ProcessingManager
       "metadataExtractor";
    private static final String MIME_PLAIN_TEXT = "plain/text";
    private static final String MIME_APPLICATION_GML = "application/gml+xml";
-
+   
    @Autowired
    private ProductDao productDao;
 
