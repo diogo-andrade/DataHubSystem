@@ -1,7 +1,7 @@
 package fr.gael.dhus.datastore.processing;
 
 import java.io.BufferedReader;
-import java.io.File;
+
 import java.io.IOException;
 import java.io.InputStreamReader;
 
@@ -11,19 +11,18 @@ import java.io.InputStreamReader;
 
 public class WorkerThread implements Runnable {
 
-    private String file;
+    private String command;
 
-    public WorkerThread(File file){
-        this.file = file.getAbsolutePath();
+    public WorkerThread(String command){
+        this.command = command;
     }
 
     @Override
     public void run() {
-        System.out.println(Thread.currentThread().getName()+" Start. Command = "+ file);
+        System.out.println(Thread.currentThread().getName()+" Start. Command = "+ command);
 
         try {
-            processRasters();
-            executeWCSTImport();
+            processCommand();
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -33,13 +32,14 @@ public class WorkerThread implements Runnable {
         System.out.println(Thread.currentThread().getName()+" End.");
     }
 
-    private String processRasters() throws IOException, InterruptedException {
+    private String processCommand() throws IOException, InterruptedException {
         StringBuffer output = new StringBuffer();
-        String tmpFile = file+".tmp";
 
         Process p;
 
-        p = Runtime.getRuntime().exec("gdalwarp -t_srs EPSG:4326 "+ file + " " + tmpFile + " && rm " + file + " && gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + file);
+       // p = Runtime.getRuntime().exec("gdalwarp -t_srs EPSG:4326 "+ file + " " + tmpFile + " && rm " + file + " && gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + file);
+        p = Runtime.getRuntime().exec(command);
+
         p.waitFor();
         BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
 
@@ -51,24 +51,9 @@ public class WorkerThread implements Runnable {
         return output.toString();
     }
 
-    private String executeWCSTImport() throws IOException, InterruptedException {
-        StringBuffer output = new StringBuffer();
-
-        Process p;
-        p = Runtime.getRuntime().exec("wcst_import "+ file);
-        p.waitFor();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
-
-        String line;
-        while ((line = reader.readLine())!= null) {
-            output.append(line + "\n");
-        }
-
-        return output.toString();
-    }
 
     @Override
     public String toString() {
-        return this.file;
+        return this.command;
     }
 }

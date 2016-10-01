@@ -2,6 +2,7 @@ package fr.gael.dhus.datastore.processing.products.sentinel1;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import fr.gael.dhus.datastore.processing.WorkerThread;
 import fr.gael.dhus.datastore.processing.products.Sentinel;
 import org.apache.log4j.Logger;
 import org.w3c.dom.Document;
@@ -24,22 +25,26 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by diogo on 19-07-2016.
  */
 public class Sentinel1L1 implements Sentinel {
     private static final Logger LOGGER = Logger.getLogger (Sentinel1L1.class);
-    private File _dir;
+    private File dir;
+    private List<String> imagesList;
 
     public Sentinel1L1(File dir) {
-        _dir = dir;
+        this.dir = dir;
+        this.imagesList = null;
     }
 
     @Override
     public void generateRecipe() {
         LOGGER.info ("* Gerar receita...");
-        List<String> imagesList = extractImagesLocationsFrom(_dir.getAbsolutePath());
+        imagesList = extractImagesLocationsFrom(dir.getAbsolutePath());
 
         if (!imagesList.isEmpty()) {
             for (String imagePath : imagesList) {
@@ -52,10 +57,13 @@ public class Sentinel1L1 implements Sentinel {
                 }
             }
         }
-
     }
 
-    public void JSONFileWrite(String coverageId, String imagePath) throws IOException {
+    public List<String> getImagesList() {
+        return this.imagesList;
+    }
+
+    private void JSONFileWrite(String coverageId, String imagePath) throws IOException {
         Map<String, Object> obj = new LinkedHashMap<>();
 
         Map<String, Object> config = new LinkedHashMap<>();
@@ -87,7 +95,7 @@ public class Sentinel1L1 implements Sentinel {
         obj.put("input", input);
         obj.put("recipe",recipe);
 
-        try (FileWriter file = new FileWriter(_dir.getAbsolutePath()+ "/" + coverageId + ".json")) {
+        try (FileWriter file = new FileWriter(dir.getAbsolutePath()+ "/" + coverageId + ".json")) {
 
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             String json = gson.toJson(obj);
@@ -96,11 +104,11 @@ public class Sentinel1L1 implements Sentinel {
         }
     }
 
-    public String generateCoverageId(String url) {
+    private String generateCoverageId(String url) {
         // extracts the file name from the url
         String fileName = (url.substring(url.lastIndexOf('/') + 1));
         // trims extension from the folder name
-        String productName = _dir.getName();
+        String productName = dir.getName();
         productName = productName.substring(0, productName.lastIndexOf('.'));
 
         String polarisation = extractPolarisationTypeFrom(fileName);
@@ -108,7 +116,7 @@ public class Sentinel1L1 implements Sentinel {
         return productName + "_" + polarisation;
     }
 
-    public String extractPolarisationTypeFrom(String fileName){
+    private String extractPolarisationTypeFrom(String fileName){
         String polarisation = null;
 
         if(fileName.contains("-vv-")){
@@ -124,7 +132,7 @@ public class Sentinel1L1 implements Sentinel {
         return polarisation;
     }
 
-    public List<String> extractImagesLocationsFrom(String folderAbsPath) {
+    private List<String> extractImagesLocationsFrom(String folderAbsPath) {
 
         List<String> imagesLocationsList = new ArrayList<>();
 
@@ -132,6 +140,9 @@ public class Sentinel1L1 implements Sentinel {
             File inputFile = new File(folderAbsPath + "/manifest.safe");
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
+
+            // Thread pool to process each image
+            ExecutorService executor = Executors.newFixedThreadPool(2);
 
             dBuilder = dbFactory.newDocumentBuilder();
 
@@ -154,10 +165,19 @@ public class Sentinel1L1 implements Sentinel {
                     // builds the absolute path for each image and add to the list
                     String imagePath = folderAbsPath + href;
                     imagesLocationsList.add(imagePath);
+                    String tmpFile = imagePath + ".tmp";
+
+                    String command = "gdalwarp -t_srs EPSG:4326 "+ imagePath + " " + tmpFile + " && rm " + imagePath + " && gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + imagePath;
+                    Runnable worker = new WorkerThread(command);
+                    executor.execute(worker);
 
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
+            // waits for all threads to finish
+            while (!executor.isTerminated()) {
+            }
+
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
         } catch (SAXException e) {
@@ -170,4 +190,5 @@ public class Sentinel1L1 implements Sentinel {
 
         return imagesLocationsList;
     }
+
 }
