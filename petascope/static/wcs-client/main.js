@@ -4558,8 +4558,8 @@ var rasdaman;
 (function (rasdaman) {
     var SettingsService = (function () {
         function SettingsService($window) {
-            //this.WCSEndpoint = $window.location.origin + "/rasdaman/ows";
-            this.WCSEndpoint = "http://ows.rasdaman.org/rasdaman/ows";
+            this.WCSEndpoint = $window.location.origin + "/rasdaman/ows";
+            //this.WCSEndpoint = "http://ows.rasdaman.org/rasdaman/ows";
             this.WCSServiceNameVersion = "SERVICE=WCS&VERSION=2.0.1";
         }
 

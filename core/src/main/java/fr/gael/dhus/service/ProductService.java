@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.RejectedExecutionException;
 
+import fr.gael.dhus.datastore.processing.RasdamanFeeder;
 import fr.gael.dhus.spring.cache.IncrementCache;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -78,7 +79,10 @@ import fr.gael.drbx.cortex.DrbCortexItemClass;
 public class ProductService extends WebService
 {
    private static Log logger = LogFactory.getLog (ProductService.class);
-   
+
+   @Autowired
+   private RasdamanFeeder rasdamanFeeder;
+
    @Autowired
    private ProductDao productDao;
    
@@ -517,6 +521,10 @@ public class ProductService extends WebService
             }
 
             long processing_end = System.currentTimeMillis ();
+
+            // After the product inserted on DHuS catalog executes Rasdaman Feeder component
+            rasdamanFeeder.process(product);
+
             logger.info ("Ingestion processing complete for product " +
                product.getPath ().toExternalForm () + " (" +
                product.getSize () + " bytes, " +
