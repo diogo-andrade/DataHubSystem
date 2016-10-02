@@ -43,7 +43,6 @@ public class WorkerThread implements Runnable {
 
         Process p;
 
-       // p = Runtime.getRuntime().exec("gdalwarp -t_srs EPSG:4326 "+ file + " " + tmpFile + " && rm " + file + " && gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + file);
         p = Runtime.getRuntime().exec(command);
 
         int exitValue = p.waitFor();

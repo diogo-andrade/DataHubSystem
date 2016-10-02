@@ -11,6 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.io.FileUtils;
 
@@ -19,6 +20,8 @@ import org.apache.commons.io.FileUtils;
  */
 public class Dispatcher {
     private static final Logger LOGGER = Logger.getLogger (Dispatcher.class);
+    private final ReentrantLock lock = new ReentrantLock();
+
     Sentinel sentinel;
     File directory;
 
@@ -52,10 +55,15 @@ public class Dispatcher {
 
 
         for(File recipe : recipes) {
-            LOGGER.info ("* WCSIMPORT recipe: " +  recipe.getAbsolutePath());
-            String[] commands = {"wcst_import.sh " + recipe.getAbsolutePath()};
-            Runnable worker = new WorkerThread(commands);
-            executor.execute(worker);
+            lock.lock();
+            try {
+                LOGGER.info ("* WCSIMPORT recipe: " +  recipe.getAbsolutePath());
+                String[] commands = {"wcst_import.sh " + recipe.getAbsolutePath()};
+                Runnable worker = new WorkerThread(commands);
+                executor.execute(worker);
+            } finally {
+                lock.unlock();
+            }
         }
 
         executor.shutdown();
