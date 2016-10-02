@@ -53,7 +53,7 @@ public class Dispatcher {
 
         for(File recipe : recipes) {
             LOGGER.info ("* WCSIMPORT recipe: " +  recipe.getAbsolutePath());
-            String[] commands = {"wcst_import " + recipe.getAbsolutePath()};
+            String[] commands = {"wcst_import.sh " + recipe.getAbsolutePath()};
             Runnable worker = new WorkerThread(commands);
             executor.execute(worker);
         }
