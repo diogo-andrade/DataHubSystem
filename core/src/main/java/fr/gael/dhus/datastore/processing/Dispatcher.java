@@ -58,6 +58,8 @@ public class Dispatcher {
             executor.execute(worker);
         }
 
+        executor.shutdown();
+
         while (!executor.isTerminated()) {
         }
     }

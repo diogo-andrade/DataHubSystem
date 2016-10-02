@@ -167,6 +167,7 @@ public class Sentinel1L1 implements Sentinel {
                     imagesLocationsList.add(imagePath);
                     String tmpFile = imagePath + ".tmp";
 
+                    // Normalize each image
                     String[] commands = {"gdalwarp -t_srs EPSG:4326 "+ imagePath + " " + tmpFile,
                             "rm " + imagePath,
                             "gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + imagePath};
@@ -177,6 +178,7 @@ public class Sentinel1L1 implements Sentinel {
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
+            executor.shutdown();
             // waits for all threads to finish
             while (!executor.isTerminated()) {
             }
