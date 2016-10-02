@@ -67,7 +67,7 @@ public class Sentinel1L1 implements Sentinel {
         Map<String, Object> obj = new LinkedHashMap<>();
 
         Map<String, Object> config = new LinkedHashMap<>();
-        config.put("service_url", "http://104.196.28.216:8080/rasdaman/ows");
+        config.put("service_url", "http://localhost:8080/rasdaman/ows");
         config.put("tmp_directory", "/tmp/");
         config.put("crs_resolver", "http://kahlua.eecs.jacobs-university.de:8080/def");
         config.put("default_crs", "http://kahlua.eecs.jacobs-university.de:8080/def/crs/EPSG/0/4326");
