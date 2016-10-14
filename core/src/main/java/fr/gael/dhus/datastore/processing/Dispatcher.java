@@ -51,8 +51,6 @@ public class Dispatcher {
     }
 
     private void runWCSTImport(List<File> recipes) {
-        ExecutorService executor = Executors.newFixedThreadPool(2);
-
 
         for(File recipe : recipes) {
             lock.lock();
@@ -60,15 +58,10 @@ public class Dispatcher {
                 LOGGER.info ("* WCSIMPORT recipe: " +  recipe.getAbsolutePath());
                 String[] commands = {"wcst_import.sh " + recipe.getAbsolutePath()};
                 Runnable worker = new WorkerThread(commands);
-                executor.execute(worker);
+                worker.run();
             } finally {
                 lock.unlock();
             }
-        }
-
-        executor.shutdown();
-
-        while (!executor.isTerminated()) {
         }
     }
 }
