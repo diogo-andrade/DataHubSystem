@@ -54,6 +54,7 @@ angular.module('DHuS-webclient')
                     var productLevel = _.findWhere(product.children, {name:"Product level"});
                     var productType = _.findWhere(product.children, {name:"Product type"});
                     productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
+                    productType = (productType) ? productType.value : '';
                     scope.polarisation  = polarisation;
                     if(productLevel == "1" && productType == "GRD") {
                       scope.OGCServicesVisible = true;

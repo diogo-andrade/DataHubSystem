@@ -79,8 +79,8 @@ public class RasdamanFeeder {
         String result = null;
 
         if(productMission.contains("1")) {
-            String productType = productName.substring(7, 11);
-            if(productType.contains("GRDH")) { // Only matters GRDH products
+            String productType = productName.substring(7, 10);
+            if(productType.contains("GRD")) { // Only matters GRD products
                 productMission = "S1";
                 productLevel += Character.toString(productName.charAt(12));
                 result = productMission.concat(productLevel);
