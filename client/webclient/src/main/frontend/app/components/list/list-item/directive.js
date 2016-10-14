@@ -153,10 +153,10 @@ angular.module('DHuS-webclient')
 
             var product = _.findWhere(scope.product.indexes,{name:"product"});
             if(product) {
-          
+              var productType = _.findWhere(summary.children, {name:"Product type"});
               var productLevel = _.findWhere(product.children, {name: "Product level"});
               productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
-              if (productLevel == "1") {
+              if (productLevel == "1" && productType == "GRD") {
                 scope.OGCServicesVisible = true;
                 scope.titleOGC = "OGC Services Available"
               } else {

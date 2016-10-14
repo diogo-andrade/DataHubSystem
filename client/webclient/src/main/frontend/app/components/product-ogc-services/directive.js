@@ -52,9 +52,10 @@ angular.module('DHuS-webclient')
                     var polarisation = _.findWhere(product.children, {name:"Polarisation"});
                     polarisation = (polarisation) ? polarisation.value.split(" ") : 'empty'
                     var productLevel = _.findWhere(product.children, {name:"Product level"});
+                    var productType = _.findWhere(product.children, {name:"Product type"});
                     productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
                     scope.polarisation  = polarisation;
-                    if(productLevel == "1") {
+                    if(productLevel == "1" && productType == "GRD") {
                       scope.OGCServicesVisible = true;
                       scope.level = productLevel;
                       var results = [];
