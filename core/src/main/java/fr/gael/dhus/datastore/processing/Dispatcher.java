@@ -56,7 +56,11 @@ public class Dispatcher {
             lock.lock();
             try {
                 LOGGER.info ("* WCSIMPORT recipe: " +  recipe.getAbsolutePath());
-                String[] commands = {"wcst_import.sh " + recipe.getAbsolutePath()};
+                String fileToRemove = recipe.getAbsolutePath().substring(0, recipe.getAbsolutePath().lastIndexOf('.'));
+                String[] commands = {
+                        "wcst_import.sh " + recipe.getAbsolutePath(),
+                        "rm " + fileToRemove + ".tif " + fileToRemove + ".json " + fileToRemove + ".resume.json"
+                };
                 Runnable worker = new WorkerThread(commands);
                 worker.run();
             } finally {

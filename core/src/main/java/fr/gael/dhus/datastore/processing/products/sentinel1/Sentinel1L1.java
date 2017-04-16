@@ -48,7 +48,7 @@ public class Sentinel1L1 implements Sentinel {
 
         if (!imagesList.isEmpty()) {
             for (String imagePath : imagesList) {
-                String coverageId = getProductName(imagePath);
+                String coverageId = getProductName();
                 LOGGER.info ("* FULL IMAGE PATH: " + coverageId);
                 try {
                     JSONFileWrite(coverageId,imagePath);
@@ -118,11 +118,9 @@ public class Sentinel1L1 implements Sentinel {
         return productName + "_" + polarisation;
     }*/
 
-    private String getProductName(String url) {
-        // extracts the file name from the url
-        String fileName = (url.substring(url.lastIndexOf('/') + 1));
-        // trims extension from the folder name
+    private String getProductName() {
         String productName = dir.getName();
+        // trims extension from the folder name
         productName = productName.substring(0, productName.lastIndexOf('.'));
 
         return productName;
@@ -192,7 +190,7 @@ public class Sentinel1L1 implements Sentinel {
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
-            String mergedFile = folderAbsPath + "/" + getProductName(folderAbsPath) + ".tif";
+            String mergedFile = folderAbsPath + "/" + getProductName() + ".tif";
             String newMergedFile = mergedFile + ".tmp" ;
             imagesLocationsList.add(mergedFile);
             String[] commands = {
