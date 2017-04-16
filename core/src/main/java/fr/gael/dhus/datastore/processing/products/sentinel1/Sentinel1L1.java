@@ -48,7 +48,7 @@ public class Sentinel1L1 implements Sentinel {
 
         if (!imagesList.isEmpty()) {
             for (String imagePath : imagesList) {
-                String coverageId = generateCoverageId(imagePath);
+                String coverageId = getProductName(imagePath);
                 LOGGER.info ("* FULL IMAGE PATH: " + coverageId);
                 try {
                     JSONFileWrite(coverageId,imagePath);
@@ -82,7 +82,8 @@ public class Sentinel1L1 implements Sentinel {
         input.put("paths", paths);
 
         List<String> band_names = new ArrayList<>();
-        band_names.add("Gray");
+        band_names.add("VV");
+        band_names.add("VH");
         Map<String, Object> options = new LinkedHashMap<>();
         options.put("wms_import", true);
         options.put("band_names", band_names);
@@ -104,6 +105,7 @@ public class Sentinel1L1 implements Sentinel {
         }
     }
 
+    /*
     private String generateCoverageId(String url) {
         // extracts the file name from the url
         String fileName = (url.substring(url.lastIndexOf('/') + 1));
@@ -114,7 +116,18 @@ public class Sentinel1L1 implements Sentinel {
         String polarisation = extractPolarisationTypeFrom(fileName);
 
         return productName + "_" + polarisation;
+    }*/
+
+    private String getProductName(String url) {
+        // extracts the file name from the url
+        String fileName = (url.substring(url.lastIndexOf('/') + 1));
+        // trims extension from the folder name
+        String productName = dir.getName();
+        productName = productName.substring(0, productName.lastIndexOf('.'));
+
+        return productName;
     }
+
 
     private String extractPolarisationTypeFrom(String fileName){
         String polarisation = null;
@@ -150,6 +163,7 @@ public class Sentinel1L1 implements Sentinel {
             doc.getDocumentElement().normalize();
 
             XPath xPath =  XPathFactory.newInstance().newXPath();
+            String imagesToMerge = "";
 
             String expression = "//dataObject[@repID='s1Level1MeasurementSchema']/byteStream/fileLocation";
             NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
@@ -164,13 +178,13 @@ public class Sentinel1L1 implements Sentinel {
 
                     // builds the absolute path for each image and add to the list
                     String imagePath = folderAbsPath + href;
-                    imagesLocationsList.add(imagePath);
+                    imagesToMerge += " " + imagePath;
                     String tmpFile = imagePath + ".tmp";
 
                     // Normalize each image
                     String[] commands = {"gdalwarp -t_srs EPSG:4326 "+ imagePath + " " + tmpFile,
                             "rm " + imagePath,
-                            "gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ tmpFile + " " + imagePath};
+                            "mv " + tmpFile + " " + imagePath};
 
                     Runnable worker = new WorkerThread(commands);
                     executor.execute(worker);
@@ -178,6 +192,20 @@ public class Sentinel1L1 implements Sentinel {
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
+            String mergedFile = folderAbsPath + "/" + getProductName(folderAbsPath) + ".tif";
+            String newMergedFile = mergedFile + ".tmp" ;
+            imagesLocationsList.add(mergedFile);
+            String[] commands = {
+                    "gdal_merge.py -o "+ mergedFile + " -separate" + imagesToMerge,
+                    "rm" + imagesToMerge,
+                    "gdal_translate -co COMPRESS=LZW -co TILED=YES -ot byte "+ mergedFile + " " + newMergedFile,
+                    "rm " + mergedFile,
+                    "mv " + newMergedFile + " " + mergedFile
+            };
+
+            Runnable worker = new WorkerThread(commands);
+            executor.execute(worker);
+
             executor.shutdown();
             // waits for all threads to finish
             while (!executor.isTerminated()) {
