@@ -208,7 +208,7 @@ public class Sentinel1L1 implements Sentinel {
             };
 
             Runnable worker = new WorkerThread(commands);
-            executor.execute(worker);
+            worker.run();
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
