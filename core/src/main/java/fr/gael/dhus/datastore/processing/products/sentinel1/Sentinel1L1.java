@@ -190,6 +190,12 @@ public class Sentinel1L1 implements Sentinel {
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
+
+            executor.shutdown();
+            // waits for all threads to finish
+            while (!executor.isTerminated()) {
+            }
+
             String mergedFile = folderAbsPath + "/" + getProductName() + ".tif";
             String newMergedFile = mergedFile + ".tmp" ;
             imagesLocationsList.add(mergedFile);
@@ -203,11 +209,6 @@ public class Sentinel1L1 implements Sentinel {
 
             Runnable worker = new WorkerThread(commands);
             executor.execute(worker);
-
-            executor.shutdown();
-            // waits for all threads to finish
-            while (!executor.isTerminated()) {
-            }
 
         } catch (ParserConfigurationException e) {
             e.printStackTrace();
