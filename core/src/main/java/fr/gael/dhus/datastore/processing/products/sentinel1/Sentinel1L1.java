@@ -25,6 +25,8 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
  * Created by diogo on 19-07-2016.
@@ -150,6 +152,9 @@ public class Sentinel1L1 implements Sentinel {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
 
+            // Thread pool to process each image
+            ExecutorService executor = Executors.newFixedThreadPool(10);
+
             dBuilder = dbFactory.newDocumentBuilder();
 
             Document doc = dBuilder.parse(inputFile);
@@ -180,12 +185,16 @@ public class Sentinel1L1 implements Sentinel {
                             "mv " + tmpFile + " " + imagePath};
 
                     Runnable worker = new WorkerThread(commands);
-                    worker.run();
+                    executor.execute(worker);
 
                     //LOGGER.info ("* File location : " +  imagePath);
                 }
             }
 
+            executor.shutdown();
+            // waits for all threads to finish
+            while (!executor.isTerminated()) {
+            }
 
             String mergedFile = folderAbsPath + "/" + getProductName() + ".tif";
             String newMergedFile = mergedFile + ".tmp" ;
