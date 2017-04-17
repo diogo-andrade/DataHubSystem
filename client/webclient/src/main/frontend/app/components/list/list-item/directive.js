@@ -152,7 +152,7 @@ angular.module('DHuS-webclient')
             scope.link = baseUrl  + "odata/v1/Products('"+scope.product.uuid+"')/$value";
 
             var product = _.findWhere(scope.product.indexes,{name:"product"});
-            if(product) {
+            /*if(product) {
               var productType = _.findWhere(product.children, {name:"Product type"});
               var productLevel = _.findWhere(product.children, {name: "Product level"});
               productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
@@ -164,7 +164,18 @@ angular.module('DHuS-webclient')
                 scope.OGCServicesVisible = false;
                 scope.titleOGC = "OGC Services Unavailable"
               }
-            }
+            }*/
+
+            WCSService.describeCoverage(scope.product.id)
+                .success(function(){
+                    scope.OGCServicesVisible = true;
+                    scope.titleOGC = "OGC Services Available"
+
+                })
+                .error(function(){
+                    scope.OGCServicesVisible = false;
+                    scope.titleOGC = "OGC Services Unavailable"
+                });
             
             if(scope.product.quicklook)
               scope.quicklooksrc = baseUrl + "odata/v1/Products('"+scope.product.uuid+"')/Products('Thumbnail')/$value";
