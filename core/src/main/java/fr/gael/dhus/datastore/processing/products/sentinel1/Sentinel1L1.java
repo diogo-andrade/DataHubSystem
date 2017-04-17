@@ -153,7 +153,7 @@ public class Sentinel1L1 implements Sentinel {
             DocumentBuilder dBuilder;
 
             // Thread pool to process each image
-            ExecutorService executor = Executors.newFixedThreadPool(2);
+            ExecutorService executor = Executors.newFixedThreadPool(10);
 
             dBuilder = dbFactory.newDocumentBuilder();
 
@@ -191,7 +191,7 @@ public class Sentinel1L1 implements Sentinel {
                 }
             }
 
-            //executor.shutdown();
+            executor.shutdown();
             // waits for all threads to finish
             while (!executor.isTerminated()) {
             }
