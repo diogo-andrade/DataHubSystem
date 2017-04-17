@@ -50,8 +50,8 @@
         }
     </style>
     <div ng-show="OGCServicesVisible">
-        <p class="ogc-button" href="{{coverage.wcs}}" target="_blank">WCS</p>
-        <p class="ogc-button" href="{{coverage.wms}}" target="_blank">WMS</p>
+        <a href="{{coverage.wcs}}" target="_blank"><p class="ogc-button">WCS</p></a>
+        <a href="{{coverage.wms}}" target="_blank"><p class="ogc-button">WMS</p></a>
     </div>
     <div ng-show="!OGCServicesVisible">
         <p>There is no OGC service available for this product.</p>
