@@ -39,6 +39,7 @@ import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
@@ -257,6 +258,12 @@ public class ProductService extends WebService
       return productDao.count (filter, null, null);
    }
 
+   @Value("${server.address}")
+   private String serverAddress;
+
+   @Value("${server.port}")
+   private String serverPort;
+
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
    @Caching(evict = {
          @CacheEvict (value = "indexes", key = "#pid"),
@@ -278,6 +285,8 @@ public class ProductService extends WebService
          throw new DataStoreException ("Cannot delete product #" + pid +
             ". Product is locked in the system.");
       }
+
+      logger.info ("----------//------> " +product.getIdentifier() + " // " + serverAddress + " // " + serverPort);
       productDao.delete (product);
    }
 
