@@ -21,7 +21,9 @@ package fr.gael.dhus.service;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
@@ -258,10 +260,10 @@ public class ProductService extends WebService
       return productDao.count (filter, null, null);
    }
 
-   @Value("${server.address}")
+   @Value("${local.server.address}")
    private String serverAddress;
 
-   @Value("${server.port}")
+   @Value("${local.server.port}")
    private String serverPort;
 
    @Transactional (readOnly=false, propagation=Propagation.REQUIRED)
@@ -287,7 +289,26 @@ public class ProductService extends WebService
       }
 
       logger.info ("----------//------> " +product.getIdentifier() + " // " + serverAddress + " // " + serverPort);
-      productDao.delete (product);
+       try {
+           wcsDeleteCoverage(product.getIdentifier());
+       } catch (IOException e) {
+           e.printStackTrace();
+       }
+       productDao.delete (product);
+   }
+
+   private static void wcsDeleteCoverage(String coverageId) throws IOException {
+        String GET_URL = "http://localhost:8080/rasdaman/ows?SERVICE=WCS&VERSION=2.0.1&request=DeleteCoverage&coverageId=" + coverageId;
+        String USER_AGENT = "Mozilla/5.0";
+        URL obj = new URL(GET_URL);
+        HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+        con.setRequestMethod("GET");
+        con.setRequestProperty("User-Agent", USER_AGENT);
+        int responseCode = con.getResponseCode();
+        if (responseCode == HttpURLConnection.HTTP_OK)
+             logger.info("Successfully deleted coverage with id " +  coverageId);
+        else
+            logger.error("NoSuchCoverage");
    }
 
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
