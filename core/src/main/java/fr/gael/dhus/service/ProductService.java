@@ -284,6 +284,7 @@ public class ProductService extends WebService
       productDao.delete (product);
       try {
            wcsDeleteCoverage(product.getIdentifier());
+           wmsDeleteLayer(product.getIdentifier());
        } catch (IOException e) {
            e.printStackTrace();
        }
@@ -301,6 +302,21 @@ public class ProductService extends WebService
              logger.info("Successfully deleted coverage with id " +  coverageId);
         else
             logger.error("NoSuchCoverage");
+   }
+
+
+   private static void wmsDeleteLayer(String coverageId) throws IOException {
+      String GET_URL = "http://localhost:8080/rasdaman/ows?service=WMS&version=1.3.0&request=DeleteLayer&layer=" + coverageId;
+      String USER_AGENT = "Mozilla/5.0";
+      URL obj = new URL(GET_URL);
+      HttpURLConnection con = (HttpURLConnection) obj.openConnection();
+      con.setRequestMethod("GET");
+      con.setRequestProperty("User-Agent", USER_AGENT);
+      int responseCode = con.getResponseCode();
+      if (responseCode == HttpURLConnection.HTTP_OK)
+         logger.info("Successfully deleted layer with id " +  coverageId);
+      else
+         logger.error("NoSuchLayer");
    }
 
    @PreAuthorize ("hasRole('ROLE_DATA_MANAGER')")
