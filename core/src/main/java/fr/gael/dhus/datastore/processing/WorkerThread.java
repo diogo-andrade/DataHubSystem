@@ -21,7 +21,7 @@ public class WorkerThread implements Runnable {
     }
 
     @Override
-    public void run() {
+    public synchronized void run() {
         System.out.println(Thread.currentThread().getName()+" Start. " +'\n');
 
         try {
