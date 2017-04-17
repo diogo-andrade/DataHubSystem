@@ -47,30 +47,42 @@ angular.module('DHuS-webclient')
                   scope.uuid = newValue;
                   scope.model = _.findWhere(scope.products.list, {uuid: scope.uuid});
                   var product = _.findWhere(scope.model.indexes,{name:"product"});
-                    if(product) {
-                    var title = scope.model.identifier;
-                    var polarisation = _.findWhere(product.children, {name:"Polarisation"});
-                    polarisation = (polarisation) ? polarisation.value.split(" ") : 'empty'
-                    var productLevel = _.findWhere(product.children, {name:"Product level"});
-                    var productType = _.findWhere(product.children, {name:"Product type"});
-                    productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
-                    productType = (productType) ? productType.value : '';
-                    scope.polarisation  = polarisation;
-                    if(productLevel == "1" && productType == "GRD") {
-                      scope.OGCServicesVisible = true;
-                      scope.level = productLevel;
-                      var results = [];
-                      for (var i = 0; i < polarisation.length; i++) {
-                        var url = ApplicationConfig.baseUrl + 'rasdaman/static/wcs-client/index.html#/';
-                        var filename = title + '_' + polarisation[i];
-                        var coverage = {id: filename, wcs: url + 'describe-coverage/' + filename, wms: url + 'get-map/' + filename};
-                        results.push(coverage);
-                        scope.coverages = results;
+                    /*if(product) {
+                      var title = scope.model.identifier;
+                      var polarisation = _.findWhere(product.children, {name:"Polarisation"});
+                      polarisation = (polarisation) ? polarisation.value.split(" ") : 'empty'
+                      var productLevel = _.findWhere(product.children, {name:"Product level"});
+                      var productType = _.findWhere(product.children, {name:"Product type"});
+                      productLevel = (productLevel) ? productLevel.value.match(/\d/g).join("") : '';
+                      productType = (productType) ? productType.value : '';
+                      scope.polarisation  = polarisation;
+                      if(productLevel == "1" && productType == "GRD") {
+                        scope.OGCServicesVisible = true;
+                        scope.level = productLevel;
+                        var results = [];
+                        for (var i = 0; i < polarisation.length; i++) {
+                          var url = ApplicationConfig.baseUrl + 'rasdaman/static/wcs-client/index.html#/';
+                          var filename = title + '_' + polarisation[i];
+                          var coverage = {id: filename, wcs: url + 'describe-coverage/' + filename, wms: url + 'get-map/' + filename};
+                          results.push(coverage);
+                          scope.coverages = results;
+                        }
+                      } else {
+                        scope.OGCServicesVisible = false;
                       }
-                    } else {
-                      scope.OGCServicesVisible = false;
-                    }
-                  }
+                    }*/
+                    WCSService.describeCoverage(scope.product.identifier)
+                        .success(function(){
+                            var url = ApplicationConfig.baseUrl + 'rasdaman/static/wcs-client/index.html#/';
+                            scope.coverage = {wcs: url + 'describe-coverage/' + scope.model.identifier, wms: url + 'get-map/' + scope.model.identifier};
+                            scope.OGCServicesVisible = true;
+                            scope.titleOGC = "OGC Services Available"
+
+                        })
+                        .error(function(){
+                            scope.OGCServicesVisible = false;
+                            scope.titleOGC = "OGC Services Unavailable"
+                        });
                 });
           }
         }

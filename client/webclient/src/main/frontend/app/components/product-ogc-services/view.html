@@ -49,18 +49,9 @@
             text-decoration: none;
         }
     </style>
-    <div ng-repeat="coverage in coverages" ng-show="OGCServicesVisible">
-        <table style="width:100%; table-layout:fixed">
-            <tbody>
-                <tr>
-                    <td style="width: 75%;"><div>
-                        <p style="margin: 0; overflow-x: scroll; overflow-y: hidden; text-decoration:none;" title="{{coverage.id}}">{{coverage.id}}</p>
-                    </div></td>
-                    <td><a class="ogc-button" href="{{coverage.wcs}}" target="_blank">WCS</a></td>
-                    <td><a class="ogc-button" href="{{coverage.wms}}" target="_blank">WMS</a></td>
-                </tr>
-            </tbody>
-        </table>
+    <div ng-show="OGCServicesVisible">
+        <td><a class="ogc-button" href="{{coverage.wcs}}" target="_blank">WCS</a></td>
+        <td><a class="ogc-button" href="{{coverage.wms}}" target="_blank">WMS</a></td>
         <p style="overflow:hidden;"></p>
     </div>
     <div ng-show="!OGCServicesVisible">
