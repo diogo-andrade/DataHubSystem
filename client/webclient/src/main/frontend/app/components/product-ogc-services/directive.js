@@ -71,7 +71,7 @@ angular.module('DHuS-webclient')
                         scope.OGCServicesVisible = false;
                       }
                     }*/
-                    WCSService.describeCoverage(scope.product.identifier)
+                    WCSService.describeCoverage(scope.model.identifier)
                         .success(function(){
                             var url = ApplicationConfig.baseUrl + 'rasdaman/static/wcs-client/index.html#/';
                             scope.coverage = {wcs: url + 'describe-coverage/' + scope.model.identifier, wms: url + 'get-map/' + scope.model.identifier};
