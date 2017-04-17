@@ -166,7 +166,7 @@ angular.module('DHuS-webclient')
               }
             }*/
 
-            WCSService.describeCoverage(scope.product.id)
+            WCSService.describeCoverage(scope.product.identifier)
                 .success(function(){
                     scope.OGCServicesVisible = true;
                     scope.titleOGC = "OGC Services Available"
