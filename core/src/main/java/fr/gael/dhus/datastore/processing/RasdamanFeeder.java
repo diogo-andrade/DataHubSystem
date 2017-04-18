@@ -60,7 +60,7 @@ public class RasdamanFeeder {
 
             // Products ingested by File Scanner
             // * after unzipped is necessary to delete the ".SAFE" file
-           /*if(isZip && unzipFile.exists() && unzipFile.isDirectory()) {
+           if(isZip && unzipFile.exists() && unzipFile.isDirectory()) {
                 try {
                     LOGGER.info ("* Delete extracted files: " + unzipFilePath);
                     FileUtils.deleteDirectory(unzipFile);
@@ -68,7 +68,7 @@ public class RasdamanFeeder {
                     LOGGER.info ("* Booooom!");
                     e.printStackTrace();
                 }
-            }*/
+            }
         }
     }
 
